@@ -15,7 +15,7 @@ rename_files.py
     匹配：^pptx?(.*?)$ 替换：PPT\\1
     匹配：^txt(.*?)$ 替换：Text\\1
     匹配：^^(zip|7z|rar)(.*?)$ 替换：Archive\\2
-    匹配：^pdf(.*?)$ 替换：PDF\\1
+    匹配：^(pdf|epub|mobi)(.*?)$ 替换：E-Book\\2
     匹配：^(json|xml|yaml|csv)(.*?)$ 替换：DataExchangeFormat\\2
     匹配：^(jpe?g|png|gif|bmp|svg)(.*?)$ 替换：Image\\2
     匹配：^(mp4|flv|webm|m4v|mov|mkv|avi)(.*?)$ 替换：Video\\2
@@ -36,7 +36,7 @@ def rename_files_in_directory(target_dir):
         (r'^pptx?(.*?)$', 'PPT\\1'),
         (r'^txt(.*?)$', 'Text\\1'),
         (r'^(zip|7z|rar)(.*?)$', 'Archive\\2'),
-        (r'^pdf(.*?)$', 'PDF\\1'),
+        (r'^(pdf|epub|mobi)(.*?)$', 'E-Book\\2'),
         (r'^(json|xml|yaml|csv)(.*?)$', 'DataExchangeFormat\\2'),
         (r'^(jpe?g|png|gif|bmp|svg)(.*?)$', 'Image\\2'),
         (r'^(mp4|flv|webm|m4v|mov|mkv|avi)(.*?)$', 'Video\\2'),
