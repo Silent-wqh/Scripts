@@ -15,7 +15,7 @@ rename_files.py
     匹配：^pptx?(.*?)$ 替换：PPT\\1
     匹配：^txt(.*?)$ 替换：Text\\1
     匹配：^^(zip|7z|rar)(.*?)$ 替换：Archive\\2
-    匹配：^(pdf|epub|mobi)(.*?)$ 替换：E-Book\\2
+    匹配：^(pdf|epub|mobi|azw3)(.*?)$ 替换：E-Book\\2
     匹配：^(json|xml|yaml|csv)(.*?)$ 替换：DataExchangeFormat\\2
     匹配：^(jpe?g|png|gif|bmp|svg)(.*?)$ 替换：Image\\2
     匹配：^(mp4|flv|webm|m4v|mov|mkv|avi)(.*?)$ 替换：Video\\2
@@ -36,7 +36,7 @@ def rename_files_in_directory(target_dir):
         (r'^pptx?(.*?)$', 'PPT\\1'),
         (r'^txt(.*?)$', 'Text\\1'),
         (r'^(zip|7z|rar)(.*?)$', 'Archive\\2'),
-        (r'^(pdf|epub|mobi)(.*?)$', 'E-Book\\2'),
+        (r'^(pdf|epub|mobi|azw3)(.*?)$', 'E-Book\\2'),
         (r'^(json|xml|yaml|csv)(.*?)$', 'DataExchangeFormat\\2'),
         (r'^(jpe?g|png|gif|bmp|svg)(.*?)$', 'Image\\2'),
         (r'^(mp4|flv|webm|m4v|mov|mkv|avi)(.*?)$', 'Video\\2'),
@@ -58,7 +58,11 @@ def rename_files_in_directory(target_dir):
                 if re.match(pattern, ext):
                     # 如果匹配，使用替换模式生成新的文件名
                     new_ext = re.sub(pattern, replacement, ext)
-                    new_filename = f"{new_ext}.{base_name}.{ext}"
+                    # 只有在基础名不以新前缀开头时才添加新前缀
+                    if not base_name.startswith(new_ext):
+                        new_filename = f"{new_ext}.{base_name}.{ext}"
+                    else:
+                        new_filename = filename
                     break
             else:
                 # 如果没有任何规则匹配，保持原样
