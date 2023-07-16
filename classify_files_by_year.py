@@ -1,3 +1,27 @@
+"""
+classify_files_by_type.py
+
+这是一个Python脚本，它能根据文件的类型将文件分类到不同的类型文件夹中。目前支持的文件类型有视频、音频、图片、文档和压缩包，文件的类型是根据其扩展名来判断的。
+
+这个脚本提供了一个命令行接口，只接受一个参数：
+-c, --config-path：配置文件的路径，默认值是"./config/classify_files_by_type_config.yaml"。
+
+这个脚本会从配置文件中读取配置，然后对目标文件夹下的文件进行分类。配置文件是一个YAML文件，包含了目标文件夹的路径、各类型文件夹的路径和各类型的文件扩展名。
+
+配置文件是一个YAML格式的文件，包含以下字段：
+- target_dirs：一个列表，包含一个或多个目标文件夹的路径。
+- no_keep_current_year_files_in_root：一个布尔值，如果设置为true，那么当前年份的文件不会被保留在根目录中。
+
+下面是一个配置文件的例子：
+
+target_dirs: 
+  - /path/to/target_dir1
+  - /path/to/target_dir2
+no_keep_current_year_files_in_root: true
+"""
+
+
+
 import os
 import shutil
 import argparse

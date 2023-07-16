@@ -1,3 +1,38 @@
+"""
+classify_files_by_year.py
+
+这是一个Python脚本，它能根据文件的创建或者修改时间（取其中最早的一项）将文件分类到不同的年份文件夹中。它可以处理一个或者多个目标文件夹，同时也可以处理目标文件夹中的子文件夹。
+
+这个脚本提供了一个命令行接口，可以接受以下参数：
+-t, --target-dirs：一个或者多个目标文件夹的路径。
+-c, --config-path：配置文件的路径，默认值是"./config/classify_files_by_year_config.yaml"。
+--no-keep-current-year-files-in-root：如果设置了这个选项，那么当前年份的文件不会被保留在根目录中。
+
+如果没有在命令行参数中指定目标文件夹，那么脚本会从配置文件中读取目标文件夹的路径。配置文件是一个YAML文件，包含了目标文件夹的路径和其他选项。
+
+配置文件是一个YAML格式的文件，包含以下字段：
+- target_dir：目标文件夹的路径。
+- type_dirs：一个映射，键是文件类型的名称，值是对应类型文件夹的路径。
+- type_exts：一个映射，键是文件类型的名称，值是一个列表，包含了该类型的所有文件扩展名。
+
+下面是一个配置文件的例子：
+
+target_dir: /path/to/target_dir
+type_dirs:
+  视频: /path/to/video/dir
+  音频: /path/to/audio/dir
+  图片: /path/to/image/dir
+  文档: /path/to/document/dir
+  压缩包: /path/to/archive/dir
+type_exts:
+  视频: [.mp4, .mkv, .flv, .avi, .mov, .wmv]
+  音频: [.mp3, .wav, .flac, .aac, .ogg, .wma]
+  图片: [.jpg, .jpeg, .png, .gif, .bmp, .tiff, .ico]
+  文档: [.txt, .pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx]
+  压缩包: [.zip, .rar, .7z, .tar, .gz]
+"""
+
+
 import os
 import shutil
 import argparse
