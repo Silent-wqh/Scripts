@@ -34,7 +34,14 @@
 
 #>
 
-$filePath = ".\resources\AudioWakeUpScript_beep.wav"
+# Get the directory where the script is located
+$scriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+
+# Change the current directory to the script directory
+Set-Location -Path $scriptPath
+
+# Set the .wav file path to be in the "resources" folder under the script's directory
+$filePath = Join-Path -Path $scriptPath -ChildPath "resources\AudioWakeUpScript_beep.wav"
 
 if(-not (Test-Path $filePath)) {
     Write-Host "File does not exist."
@@ -46,6 +53,6 @@ while($true) {
     $player = New-Object System.Media.SoundPlayer
     $player.SoundLocation = $filePath
     $player.Play()
-
+    
     Start-Sleep -Seconds 5
 }
