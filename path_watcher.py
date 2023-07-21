@@ -51,10 +51,11 @@ from watchdog.events import FileSystemEventHandler, EVENT_TYPE_MOVED
 
 
 class MyHandler(FileSystemEventHandler):
-    def __init__(self, output_file: str, recursive: bool):
+    def __init__(self, output_file: str, recursive: bool, path: str or list):
         self.entry_list = []  # List to store files and subdirectories in the directory
         self.output_file = output_file  # Path to the output file
         self.recursive = recursive  # Whether to monitor subdirectories recursively
+        self.path = path  # Paths to be monitored
 
     def on_created(self, event):
         super().on_created(event)
@@ -77,19 +78,21 @@ class MyHandler(FileSystemEventHandler):
 
     def update_entry_list(self):
         self.entry_list = []
-        if self.recursive:
-            for root, dirs, files in os.walk(path):
-                for dir_name in dirs:
-                    if dir_name != os.path.basename(path):
-                        self.entry_list.append(os.path.relpath(os.path.join(root, dir_name), path) + "/")
-                for file_name in files:
-                    self.entry_list.append(os.path.relpath(os.path.join(root, file_name), path))
-        else:
-            for entry in os.scandir(path):
-                if entry.is_dir() and not entry.is_symlink():
-                    self.entry_list.append(entry.name + "/")
-                elif entry.is_file() and not entry.is_symlink():
-                    self.entry_list.append(entry.name)
+        paths = self.path if isinstance(self.path, list) else [self.path]
+        for path in paths:
+            if self.recursive:
+                for root, dirs, files in os.walk(path):
+                    for dir_name in dirs:
+                        if dir_name != os.path.basename(path):
+                            self.entry_list.append(os.path.relpath(os.path.join(root, dir_name), path) + "/")
+                    for file_name in files:
+                        self.entry_list.append(os.path.relpath(os.path.join(root, file_name), path))
+            else:
+                for entry in os.scandir(path):
+                    if entry.is_dir() and not entry.is_symlink():
+                        self.entry_list.append(entry.name + "/")
+                    elif entry.is_file() and not entry.is_symlink():
+                        self.entry_list.append(entry.name)
 
     def save_entry_list_to_output(self):
         with open(self.output_file, "w") as f:
@@ -150,10 +153,14 @@ if __name__ == "__main__":
     console_handler.setFormatter(console_formatter)
     logging.getLogger().addHandler(console_handler)
 
-    event_handler = MyHandler(output_file, recursive)
+    event_handler = MyHandler(output_file, recursive, path)
     observer = Observer()
-    observer.schedule(event_handler, path, recursive=recursive)
 
+    if isinstance(path, list):
+        for p in path:
+            observer.schedule(event_handler, p, recursive=recursive)
+    else:
+        observer.schedule(event_handler, path, recursive=recursive)
     signal.signal(signal.SIGINT, signal_handler)
 
     logging.info("Starting observer...")
