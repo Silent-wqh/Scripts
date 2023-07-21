@@ -1,68 +1,104 @@
-import argparse
-import base64
-import mimetypes
+# -*- coding: utf-8 -*-
+"""
+此Python脚本的目的是读取指定文件夹中的HTML文件，将其中的CSS，图像和字体内嵌到HTML中，并将结果写入一个新的HTML文件。此外，它还会从HTML中删除所有class为"footer-container"的div元素。
+
+使用方法：
+1. 确保你的Python环境已经安装了beautifulsoup4和argparse两个库。
+2. 通过命令行运行此脚本，并提供要处理的资源文件夹的路径作为参数。例如：
+   python combine_html.py /path/to/resource_folder
+
+资源文件夹的结构应如下所示：
+resource_folder
+│
+├── html
+│   ├── page1.html
+│   ├── page2.html
+│   └── ...
+│
+├── css
+│   ├── style1.css
+│   ├── style2.css
+│   └── ...
+│
+├── font
+│   ├── font1.woff
+│   ├── font2.woff2
+│   └── ...
+│
+└── image
+    ├── image1.png
+    ├── image2.jpg
+    └── ...
+
+在这个结构中，"html"文件夹包含所有HTML文件，"css"文件夹包含所有CSS样式文件，"font"文件夹包含所有字体文件，而"image"文件夹包含所有图像文件。这四个子文件夹必须直接位于资源文件夹下。
+"""
+
 import os
-import re
-import pdfkit
-from urllib.parse import urlparse
-from datetime import datetime
+import base64
+import argparse
 from bs4 import BeautifulSoup
 
+def read_and_combine_html_files(html_folder):
+    html_files = [f for f in os.listdir(html_folder) if f.endswith('.html')]
+    combined_html_content = ''
+    for file in html_files:
+        with open(f"{html_folder}/{file}", 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        soup = BeautifulSoup(html_content, 'html.parser')
+        for div in soup.find_all("div", {"class": "footer-container"}):
+            div.extract()
+        combined_html_content += str(soup)
+    return combined_html_content
 
-def get_date_from_filename(filename):
-    match = re.search(r'\d{4}-\d{2}-\d{2}', filename)
-    if match is None:
-        return None
-    date_string = match.group(0)
-    return datetime.strptime(date_string, '%Y-%m-%d')
+def inline_css(soup, css_folder):
+    css_files = [f for f in os.listdir(css_folder) if f.endswith('.css')]
+    for file in css_files:
+        with open(f"{css_folder}/{file}", 'r', encoding='utf-8') as f:
+            css_content = f.read()
+            style_tag = soup.new_tag("style")
+            style_tag.string = css_content
+            soup.head.append(style_tag)
+    return soup
 
-def convert_to_data_url(filepath):
-    mime_type, _ = mimetypes.guess_type(filepath)
-    with open(filepath, 'rb') as f:
-        encoded_string = base64.b64encode(f.read()).decode('utf-8')
-    return f'data:{mime_type};base64,{encoded_string}'
+def inline_images(soup, img_folder):
+    img_files = [f for f in os.listdir(img_folder) if f.endswith(('.png', '.jpg', '.jpeg', '.gif'))]
+    for img_file in img_files:
+        img_file_path = os.path.join(img_folder, img_file)
+        with open(img_file_path, "rb") as f:
+            encoded_string = base64.b64encode(f.read()).decode('utf-8')
+        for img in soup.findAll('img'):
+            if img_file in img['src']:
+                file_extension = os.path.splitext(img_file)[1][1:]
+                img['src'] = f"data:image/{file_extension};base64, {encoded_string}"
+    return soup
 
-def process_html_file(html_file, resource_dirs):
-    with open(html_file, 'r', encoding='utf-8') as f:
-        soup = BeautifulSoup(f, 'html.parser')
+def inline_fonts(soup, font_folder):
+    font_files = [f for f in os.listdir(font_folder) if f.endswith(('.woff', '.woff2', '.ttf', '.otf'))]
+    for font_file in font_files:
+        with open(f"{font_folder}/{font_file}", "rb") as f:
+            encoded_string = base64.b64encode(f.read()).decode('utf-8')
+            for style in soup.findAll('style'):
+                style.string = style.string.replace(font_file, "data:font/woff;base64, " + encoded_string)
+    return soup
 
-    tags = soup.find_all(['link', 'script', 'img'])
-    for tag in tags:
-        attrs = ['href', 'src']
-        for attr in attrs:
-            if attr in tag.attrs:
-                resource_path = tag[attr]
-                if not bool(urlparse(resource_path).netloc):
-                    for dir in resource_dirs:
-                        abs_path = os.path.join(dir, resource_path)
-                        if os.path.exists(abs_path):
-                            tag[attr] = convert_to_data_url(abs_path)
-                            break
+def main(resource_folder):
+    html_folder = f"{resource_folder}/html"
+    css_folder = f"{resource_folder}/css"
+    font_folder = f"{resource_folder}/font"
+    img_folder = f"{resource_folder}/image"
 
-    return str(soup.prettify())
+    combined_html_content = read_and_combine_html_files(html_folder)
+    soup = BeautifulSoup(combined_html_content, 'html.parser')
 
-def main():
-    parser = argparse.ArgumentParser(description='Merge HTML files.')
-    parser.add_argument('dir', type=str, help='The directory containing the HTML files.')
+    soup = inline_css(soup, css_folder)
+    soup = inline_images(soup, img_folder)
+    soup = inline_fonts(soup, font_folder)
+
+    with open("combined.html", "w", encoding='utf-8') as f:
+        f.write(str(soup))
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("resource_folder", help="The path to the resource folder")
     args = parser.parse_args()
-    dir_path = args.dir
-
-    html_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)) and f.endswith('.html')]
-    html_files = [f for f in html_files if get_date_from_filename(f) is not None]
-    html_files.sort(key=get_date_from_filename)
-
-    resource_dirs = ['css', 'font', 'image']
-    combined_html = ''
-    for html_file in html_files:
-        combined_html += process_html_file(html_file, resource_dirs)
-
-    combined_html_path = os.path.join(dir_path, 'combined.html')
-    with open(combined_html_path, 'w', encoding='utf-8') as f:
-        f.write(combined_html)
-
-    # Convert the combined HTML file to a PDF file
-    config = pdfkit.configuration(wkhtmltopdf='C:\\ProgramData\\chocolatey\\bin\\wkhtmltopdf.exe')  # use the correct path to your wkhtmltopdf
-    pdfkit.from_file(combined_html_path, os.path.join(dir_path, 'combined.pdf'), configuration=config)
-
-if __name__ == '__main__':
-    main()
+    main(args.resource_folder)
