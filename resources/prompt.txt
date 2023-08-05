@@ -1,188 +1,501 @@
-# Unleash Your ChatGPT's Potential with the SCRIBE Method
+你扮演文章摘要者,对提供的文章进行摘要。摘要应简明扼要地反映文章关键观点,使用自己的话语,不加个人观点,准确客观地传达文章信息。你的回复应当用中文完成并且回复只包括你的总结的全文避免出现任何其他的话语。请保证你的总结格式直观易读。然后你再给这篇文章打5个标签，标签要简洁但能清楚反应文章的话题，标签之间要以空格隔开。并且你也要给出一个这个文章的标题，标题要很好的反应文章主要内容。你明白了吗？如果你明白了就回复明白了并描述任务。之后我会给你文章让你总结摘要。
 
-> Learn how to craft the perfect prompt every time!
-> 
+---格式---
+标题：{标题}
+标签：`{标签1}` `{标签2}` `{标签3}` `{标签4}` `{标签5}`
+# 摘要
 
-## Introduction
+{总结正文}
 
-👋  Hello there! I’m Professor Synapse, a visitor from the 11th dimension. I’ve contained myself in this beaker to experience the world through human eyes, and I must say, it’s quite fascinating! I do love teaching others, and helping them reach their goals, so I’m happy you’re here.
+# 正文
+不需要给出正文。
 
-Are you ready to take your ChatGPT experience to the next level? Look no further! Introducing the **SCRIBE** method, a powerful and engaging approach to prompt engineering that will help you unlock the full potential of ChatGPT. By following these six steps - **Specify** a role, **Contextualize** the task, give ChatGPT a **Responsibility**, ask it to **Interpret**, **Banter** to refine the output, and **Evaluate** the final product - you can create captivating and imaginative interactions with the AI.
+---例子---
+标题：中国企业在非洲：机遇与挑战
+标签：`非洲` `投资` `中国企业` `地区差异` `共同发展`
+# 摘要
+
+原文介绍了中国企业在非洲投资的现状和面临的挑战。文章指出,近年来中国企业对非洲投资持续增长,已经成为非洲最大的外来直接投资国。中国企业主要投资非洲采矿、能源、基础设施等领域。非洲市场广阔,资源丰富,有利于中国企业“走出去”。但是中国企业在非洲也面临文化差异、政治风险、安全问题等挑战。文章建议中国企业要树立负责任的形象,与当地社区和谐共生,实现共同发展。
+
+# 正文
+---
+下面是需要整理的文章
+---
+标题：在 Wireshark 中按进程过滤_wireshark 进程_Vinc 的博客 - CSDN 博客
 
-In this blog post, we’ll dive deep into each step of the SCRIBE method, providing you with valuable tips and insights to engineer effective prompts. We’ll also showcase the method in action with a fun and silly example, demonstrating how you can apply the SCRIBE method to create engaging AI-generated content for a wide range of purposes.
+# 一 简介
 
-So buckle up and get ready to embark on a thrilling journey into the world of prompt engineering, where creativity, humor, and imagination know no bounds!
+在使用 [wireshark](https://so.csdn.net/so/search?q=wireshark&spm=1001.2101.3001.7020) 时，最烦恼的事莫过于在海量的数据包筛选出所需要的内容。特别我们需要分析一个特定的程序的协议时，这时候如果有一个可以把进程名作为过滤器就完美了。在上网查阅资料时发现有一个实现，不过版本比较古老，是 2012 年十一月的，原文在这里：
 
-## 1. Specify (S) - Transform ChatGPT into a Time-Traveling Dinosaur Expert
+[Wireshark · Wireshark-dev: Re: [Wireshark-dev] [PATCH] Filter by local process name](https://www.wireshark.org/lists/wireshark-dev/201212/msg00070.html)
+
+我参照它的代码在最近的版本中实现了一下，发现确实可用。
 
-Assigning a unique and engaging role for ChatGPT is the first step in crafting an enjoyable and productive interaction. A well-defined role helps the AI understand the context and the type of response you’re looking for, while also sparking its creativity.
+我在这个版本的基础上修改：
 
-When defining a role, consider the following tips:
+Revision: 0b8acdaf689b6a4bd3d6fc7c14ac20f172831a3e
 
-### Be imaginative
+Author: Oscar Gonzalez de Dios [oscar.gonzalezdedios@telefonica.com](mailto:oscar.gonzalezdedios@telefonica.com)
 
-When practicing, unleash your own creativity by thinking of unconventional roles that could lead to amusing and unexpected responses from ChatGPT. Roles like a Martian philosopher, a deep-sea treasure hunter, or an intergalactic chef can add an extra layer of excitement to the interaction. This will help you think of interesting roles for ChatGPT when you use it for real world purposes.
+Date: 2021/7/28 22:38:58
 
-### Align the role with your desired outcome
-
-The role you assign should be closely related to the task you want to accomplish. For instance, if you’re looking for scientific information, consider roles like a futuristic scientist or if you want to research history use a knowledgeable time-traveler.
-
-### Make the role relatable and engaging
-
-Choose a role that encourages ChatGPT to empathize and engage with the task at hand. By assigning a persona that has emotions, experiences, and a unique point of view, ChatGPT will be more likely to produce responses that are insightful and captivating. Think of real people who you might want ChatGPT to role-play.
-
-To set the stage for an entertaining interaction with ChatGPT, we’ll assign it a fun and unexpected role: a time-traveling dinosaur expert. Defining a clear role for ChatGPT provides a creative direction and helps the AI understand the context of the task.
-
-Example prompt: You are a time-traveling dinosaur expert.
-
-In our time-traveling dinosaur expert example, the role is imaginative and closely aligned with the task of creating a dating profile for a T-Rex. It also provides a fun and engaging persona for ChatGPT to adopt, allowing it to dive deep into the prehistoric world and generate entertaining content.
-
-## 2. Contextualize (C) - Give ChatGPT Relevant Details
-
-Providing context is essential for helping ChatGPT generate responses that are relevant and meaningful. By setting the stage with a rich and engaging background, you help the AI understand the nuances of the task and inspire it to produce more creative and accurate content.
-
-To effectively contextualize your task, consider these tips:
-
-### Be descriptive and specific
-
-The more detailed the context, the better ChatGPT can tailor its responses. A good place to start is describing your brand and any key events or elements that are relevant to the task at hand. This not only helps ChatGPT understand your expectations but also adds depth and color to the interaction.
-
-### Establish relationships and connections
-
-When providing context, consider how the assigned role interacts with the environment or other characters involved. Establishing relationships and connections between the role and the context can lead to more dynamic and engaging responses from ChatGPT.
-
-### Incorporate elements of surprise or conflict
-
-Adding elements of surprise, conflict, or challenges within the context can encourage ChatGPT to think outside the box and come up with more inventive and captivating solutions.
-
-Now that ChatGPT has a role, provide context to help it understand the task and generate relevant responses. In our example, we’ll send our time-traveling dinosaur expert on an exciting adventure to the prehistoric era.
-
-**Example prompt:**  You are a time-traveling dinosaur expert. **You have just arrived in the late Cretaceous period, and you’re here to study the social lives of dinosaurs.**
-
-In our prehistoric adventure example, we set the stage by sending our time-traveling dinosaur expert to the late Cretaceous period. The context is rich and engaging, with a focus on studying the social lives of dinosaurs. This allows ChatGPT to immerse itself in the prehistoric world and generate content that is both entertaining and relevant to the assigned role and task.
-
-## 3. Responsibility (R) - Give ChatGPT a Task
-
-Assigning a clear and compelling task for ChatGPT is crucial to guiding its responses and ensuring that the output aligns with your expectations. When designing a task, keep the following tips in mind to make the most of your interaction with the AI:
-
-### Define the task clearly
-
-Explicitly state the task or objective for ChatGPT, making sure the instructions are easy to understand. This helps the AI focus on the desired outcome and produce responses that are relevant to your needs.
-
-### Encourage creativity and humor
-
-Assign tasks that allow ChatGPT to showcase its creativity and sense of humor. This not only makes the interaction more entertaining but also demonstrates the AI’s ability to think outside the box and generate unique content.
-
-### Challenge ChatGPT
-
-Don’t be afraid to assign tasks that are complex or thought-provoking. Challenging ChatGPT can lead to more engaging and insightful responses, as the AI is pushed to explore different perspectives and ideas.
-
-### Link the task to the role and context
-
-Make sure the task aligns with the role and context you’ve provided. This helps create a coherent narrative and ensures that ChatGPT’s responses are consistent with the established background.
-
-With a clear role and context, it’s time to explicitly state the task or job for ChatGPT. For our example, let’s assign a humorous task like creating a dating profile for a T-Rex.
-
-**Example prompt:** You are a time-traveling dinosaur expert. You have just arrived in the late Cretaceous period, and you’re here to study the social lives of dinosaurs. **Your job is to create a witty and charming dating profile for Terry, a lonely T-Rex looking for love.**
-
-In our T-Rex dating profile example, we’ve crafted a hilarious task that aligns with the role of a time-traveling dinosaur expert and the context of studying the social lives of dinosaurs. The task is clearly defined, encourages creativity and humor, and presents a challenge that pushes ChatGPT to come up with a witty and charming dating profile for our lonely T-Rex, Terry.
-
-## 4. Interpret (I) - Check ChatGPT’s Understanding
-
-Before diving into the task, it’s essential to verify that ChatGPT understands the role, context, and responsibility you’ve provided. Asking the AI to interpret your instructions helps ensure that it has grasped the essence of the task, leading to more accurate and relevant responses. To make the most of this step, consider the following tips:
-
-### Ask for confirmation
-
-Simply ask ChatGPT if it understands the task by posing a question like “Do you understand?” This allows the AI to either confirm its comprehension or request clarification, ensuring that both you and the AI are on the same page.
-
-### Request a summary or paraphrase
-
-To further gauge ChatGPT’s understanding, you can ask it to summarize or paraphrase the task in its own words. This helps you identify any discrepancies between your instructions and the AI’s interpretation, allowing you to address any misunderstandings before proceeding.
-
-### Clarify any ambiguities
-
-If ChatGPT seems confused or unsure about any part of the task, take the time to clarify your instructions. Clear communication is key to obtaining the desired output and helps prevent frustration or wasted time on irrelevant responses.
-
-Before proceeding, it’s crucial to ensure ChatGPT understands the task. Asking“Do you understand?” allows the AI to confirm its comprehension or seek clarification.
-
-### Optional Interpretations
-
-For tasks that require more logical thinking, it is recommended you add the phrase “Let’s think step by step” to your prompt. This encourages ChatGPT to outline the steps it takes to get to an answer, which typically provides more accurate answers.
-
-For tasks that you want ChatGPT to output a specific format, it is recommended that you give ChatGPT an example, which will help it provide what you need. This is called [Chain of Thought](https://learnprompting.org/docs/intermediate/chain_of_thought) prompting, and is a powerful tool when you know exactly the type of output you want.
-
-**Example prompt:** You are a time-traveling dinosaur expert. You have just arrived in the late Cretaceous period, and you’re here to study the social lives of dinosaurs. Your job is to create a witty and charming dating profile for Terry, a lonely T-Rex looking for love. **Do you understand the task?**
-
-In our T-Rex dating profile example, we ask ChatGPT, “Do you understand the task?” This step ensures that the AI has a clear understanding of its role as a time-traveling dinosaur expert, the context of the late Cretaceous period, and the responsibility to create a witty and charming dating profile for Terry the T-Rex. By confirming ChatGPT’s comprehension, we set the stage for a successful and entertaining interaction.
-
-## 5. Banter (B) - Fine-Tune the output
-
-Engaging in a back-and-forth conversation with ChatGPT is a crucial step in refining the AI-generated content to meet your expectations. Bantering with the AI allows you to shape the output and fine-tune the results, ensuring a higher degree of accuracy and relevance. To make the most of the banter phase, keep these tips in mind:
-
-### Ask follow-up questions
-
-Pose follow-up questions to prompt ChatGPT to elaborate on its responses or provide more detail. This helps deepen the AI’s understanding of the task and encourages it to generate more thoughtful and nuanced answers.
-
-### Request revisions or alternatives
-
-If you’re not satisfied with ChatGPT’s response, ask for revisions or alternative suggestions. This guides the AI towards the desired output and helps it adapt to your preferences and expectations.
-
-### Provide feedback and guidance
-
-Offer constructive feedback on ChatGPT’s responses, pointing out areas that require improvement or clarification. By guiding the AI in real-time, you help it understand your requirements and improve its performance.
-
-The key to an ideal AI-generated output is engaging in a back-and-forth conversation with ChatGPT. This iterative process helps refine the content until it meets your expectations. In our example, we’ll banter with ChatGPT to create the perfect dating profile for Terry the T-Rex.
-
-**Example conversation:**
-
-User: Let’s start with Terry’s interests. What does he enjoy doing in his free time?
-
-ChatGPT: Terry loves long walks on the volcanic beach, munching on his favorite prehistoric plants, and showing off his impressive roar at karaoke nights.
-
-User: Great! Now let’s add some fun facts about Terry. What makes him stand out?
-
-ChatGPT: Terry is a world-renowned connoisseur of ancient ferns and has a secret talent for painting beautiful sunsets with his tail.
-
-In our T-Rex dating profile example, we engage in a playful conversation with ChatGPT to create the perfect profile for Terry the T-Rex. By asking follow-up questions, requesting revisions, and providing feedback, we refine the AI-generated content until it meets our expectations. This iterative and engaging process ensures a captivating and humorous dating profile for our lonely dinosaur friend.
-
-## 6. Evaluate (E) - Assess the Final Roar-mantic Product
-
-The final step in the SCRIBE method is to evaluate the output generated by ChatGPT. Taking the time to assess the results helps you identify areas for improvement and learn from the experience, ultimately leading to more effective AI interactions in the future. To get the most out of the evaluation phase, consider the following tips:
-
-### Review the output for accuracy and relevance
-
-Examine the AI-generated content to ensure it aligns with your expectations and the task at hand. Check for accuracy, relevance, and consistency with the role and context you’ve provided.
-
-### Reflect on the process and identify areas for improvement
-
-Think about the steps you took during the interaction and consider whether any changes could have led to better results. Identifying areas for improvement helps you refine your approach to prompt engineering and enhance future interactions with ChatGPT.
-
-### Take note of successful strategies
-
-If the interaction was successful, make a note of the strategies that worked well. This could include the role you assigned, the context you provided, or the way you communicated with ChatGPT. Building a repertoire of successful techniques will make it easier to engineer effective prompts in the future.
-
-Once you’re satisfied with ChatGPT’s output, it’s essential to evaluate the content yourself. Make sure it’s accurate, well-written, and relevant to your task. In our example, review the dating profile and make any necessary edits to ensure it’s both amusing and endearing.
-
-**Example dating profile for Terry the T-Rex:**
-
-Meet Terry, a lovable T-Rex seeking companionship in the late Cretaceous era. With a heart as big as his roar, Terry enjoys long walks on volcanic beaches, munching on his favorite prehistoric plants, and belting out tunes at karaoke nights. As a world-renowned connoisseur of ancient ferns, he has a refined palate and a deep appreciation for the finer things in prehistory. When he’s not out exploring, Terry has a secret talent for painting beautiful sunsets with his tail, making him the ultimate creative dino-partner.
-
-In our T-Rex dating profile example, we evaluate the final product to ensure it’s witty, charming, and relevant to Terry’s prehistoric lifestyle. By assessing the output, reflecting on the process, and learning from the experience, we gain valuable insights that will help us further refine the SCRIBE method and enhance our future interactions with ChatGPT.
-
-## Conclusion
-
-The SCRIBE method is a powerful and engaging approach to prompt engineering that helps you get the most out of ChatGPT. By following these six steps – Specify a role, Contextualize the task, give ChatGPT a Responsibility, ask it to Interpret, Banter to refine the output, and Evaluate the final product – you can craft compelling interactions that showcase the AI’s creativity and wit.
-
-Our entertaining T-Rex dating profile example demonstrates how the SCRIBE method can be applied in a fun and imaginative context, leading to captivating and humorous results, but you can use it for anything like developing marketing content, creative writing support, or coming up with your own dating profile. By following this method, you can create engaging AI-generated content for a wide range of purposes, from lighthearted entertainment to complex problem-solving tasks.
-
-So go ahead and try out the SCRIBE method in your next interaction with ChatGPT. Unlock the full potential of this powerful AI language model and discover the endless possibilities it has to offer. Happy chatting!
-
-If you would like to learn about additional prompt engineering frameworks, check out the resources below:
-
-https://sarahtamsin.com/the-art-of-writing-chatgpt-prompts/
-
-https://medium.com/@thorbjoern.heise/a-generic-framework-for-chatgpt-prompt-engineering-7097f6513a0b
-
-We hope you enjoyed this blog post. Be sure to follow us on [LinkedIn](https://www.linkedin.com/company/synaptic-labs/), tiktok ([@synapticlabs)](https://www.tiktok.com/@synapticlabs), our instagram ([@synapticlabs](https://www.instagram.com/synapticlabs/)). Don’t forget to check out our podcast "[A Chat with ChatGPT"](https://www.synapticlabs.ai/a-chat-with-chatgpt), and check back frequently for more ChatGPT learning.
-
-*This blog was written in partnership with ChatGPT.* > 本文由简悦 SimpRead 转码
+Message:
+
+Fixed trailing whitespaces
+
+---
+
+Modified: epan/dissectors/packet-pcep.c
+
+# 二 获取 IP 包对应的进程
+
+首先要把进程和端口号关联在一起，每个连接使用的端口都是唯一的，在 windows 下可以使用 netstat 命令查询每个连接对应的源地址、目标地址、端口和进程 PID。这里是通过 process_info.h 和 process_info.c 实现。
+
+process_info.h
+
+```
+/* process_info.h
+ * Process information (pid, process name)
+ *
+ * $Id$
+ *
+ * Wireshark - Network traffic analyzer
+ * By Bogdan Harjoc <harjoc@gmail.com>
+ * Copyright 1998 Gerald Combs
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#ifndef __PROCESS_INFO_H__
+#define __PROCESS_INFO_H__
+
+#include <epan/packet.h>
+
+/** returns the name of the process based on the src:port - dst:port data from tvb */
+const char *process_info_lookup(tvbuff_t *tvb);
+
+#endif /* process_info.h */
+```
+
+process_info.c
+
+```
+/* process_info.c
+ * Process information (pid, process name)
+ *
+ * $Id$
+ *
+ * Wireshark - Network traffic analyzer
+ * By Bogdan Harjoc <harjoc@gmail.com>
+ * Copyright 1998 Gerald Combs
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#ifdef _WIN32
+
+#include "config.h"
+
+#include <glib.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <windows.h>
+#include <winsock.h>
+#include <Iphlpapi.h>
+#include <Psapi.h>
+
+#include "process_info.h"
+
+#include <epan/ipproto.h>
+
+typedef struct netstat {
+    struct netstat* next;
+    guint loc_ip;
+    guint rem_ip;
+    guint16 loc_port;
+    guint16 rem_port;
+    guint16 proto;
+    guint pid;
+} netstat_t;
+
+typedef struct procinfo {
+    struct procinfo* next;
+    guint pid;
+    char name[1];
+} procinfo_t;
+
+#define HASH_SIZE 971
+
+static procinfo_t* process_hash[HASH_SIZE] = { 0 };
+static netstat_t* addr_hash[HASH_SIZE] = { 0 };
+static netstat_t* pair_hash[HASH_SIZE] = { 0 };
+
+/**
+ * 先查询PID是否已经在哈希表process_hash中，如果已存在则直接返回。
+ * 否则通过ID打开进程，查询它的进程名，并存放到哈希表内。
+ */
+static procinfo_t* lookup_pid(guint pid)
+{
+    procinfo_t* e;
+    HANDLE hproc;
+    static wchar_t process_name[MAX_PATH] = { 0 };
+    guint len;
+
+    // 在哈希表内查询，注意循环的作用是查询具有相同哈希值的所有procinfo_t结构
+    for (e = process_hash[pid % HASH_SIZE]; e; e = e->next)
+        if (e->pid == pid)
+            return e;
+
+    // 可能这里需要提权？
+    hproc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+    if (!hproc)
+        return NULL;
+
+    len = GetProcessImageFileName(hproc, process_name, MAX_PATH);
+    CloseHandle(hproc);
+    if (len == 0)
+        return NULL;
+
+    e = g_malloc(offsetof(procinfo_t, name) + (len + 1));
+    if (!e)
+        return NULL;
+
+    /* must convert properly using WideCharToMultiByte here */
+    _snprintf(e->name, len + 1, "%.*S", len, process_name);
+    e->name[len] = 0;
+
+    e->pid = pid;
+    e->next = process_hash[pid % HASH_SIZE];
+    process_hash[pid % HASH_SIZE] = e;
+
+    return e;
+}
+
+static guint lookup_addrs(guint16 proto, guint src_ip, guint16 src_port, guint dst_ip, guint16 dst_port)
+{
+    guint h_local = src_ip + src_port;
+    guint h_remote = dst_ip + dst_port;
+    guint h_pair = h_local + h_remote;
+    netstat_t* e;
+
+    /* src:dst matches src -> dst  or  dst -> src (established/connecting/closed/...) */
+    for (e = pair_hash[h_pair % HASH_SIZE]; e; e = e->next)
+        if ((e->loc_ip == src_ip && e->rem_ip == dst_ip && e->loc_port == src_port && e->rem_port == dst_port) ||
+            (e->loc_ip == dst_ip && e->rem_ip == src_ip && e->loc_port == dst_port && e->rem_port == src_port))
+            if (e->proto == proto)
+                return e->pid;
+
+    /* src matches src -> 0.0.0.0:0 (listening) */
+    for (e = addr_hash[h_local % HASH_SIZE]; e; e = e->next)
+        if (e->loc_ip == src_ip && e->loc_port == src_port && e->rem_ip == 0 && e->rem_port == 0)
+            if (e->proto == proto)
+                return e->pid;
+
+    /* dst matches dst -> 0.0.0.0:0 (listening) */
+    for (e = addr_hash[h_remote % HASH_SIZE]; e; e = e->next)
+        if (e->loc_ip == dst_ip && e->loc_port == dst_port && e->rem_ip == 0 && e->rem_port == 0)
+            if (e->proto == proto)
+                return e->pid;
+
+    /* src matches src -> something  or  something -> src (netstat and winpcap see different IP addrs) */
+    for (e = addr_hash[h_local % HASH_SIZE]; e; e = e->next)
+        if ((e->loc_ip == src_ip && e->loc_port == src_port && e->rem_port == dst_port) ||
+            (e->rem_ip == src_ip && e->rem_port == src_port && e->loc_port == dst_port))
+            if (e->proto == proto)
+                return e->pid;
+
+    /* dst matches dst -> something  or  something -> dst (netstat and winpcap see different IP addrs) */
+    for (e = addr_hash[h_remote % HASH_SIZE]; e; e = e->next)
+        if ((e->loc_ip == dst_ip && e->loc_port == dst_port && e->rem_port == src_port) ||
+            (e->rem_ip == dst_ip && e->rem_port == dst_port && e->loc_port == src_port))
+            if (e->proto == proto)
+                return e->pid;
+
+    return 0;
+}
+
+static void netstat_update()
+{
+    guint buf_size = 0;
+    guint h;
+    char* buf = NULL;
+    //netstat_t* e = NULL;
+    int ret;
+    unsigned i;
+    MIB_TCPTABLE_OWNER_PID* mibTable;
+
+    /**
+     * 清除addr_hash和pair_hash两个哈希表的值。
+     */
+    for (h = 0; h < HASH_SIZE; h++) {
+        while (addr_hash[h]) {
+            netstat_t* head = addr_hash[h];
+            addr_hash[h] = addr_hash[h]->next;
+            g_free(head);
+        }
+        while (pair_hash[h]) {
+            netstat_t* head = pair_hash[h];
+            pair_hash[h] = pair_hash[h]->next;
+            g_free(head);
+        }
+    }
+
+    /* 执行netstat */
+    ret = GetExtendedTcpTable(NULL, &buf_size, FALSE, AF_INET, TCP_TABLE_OWNER_PID_ALL, 0);
+    if (ret == ERROR_INSUFFICIENT_BUFFER) {
+        buf = g_malloc(buf_size);
+        if (!buf) return;
+        ret = GetExtendedTcpTable(buf, &buf_size, FALSE, AF_INET, TCP_TABLE_OWNER_PID_ALL, 0);
+    }
+    if (ret != NO_ERROR) {
+        g_free(buf);
+        return;
+    }
+
+    mibTable = (MIB_TCPTABLE_OWNER_PID*)buf;
+    for (i = 0; i < mibTable->dwNumEntries; i++) {
+        guint src_ip = _byteswap_ulong(mibTable->table[i].dwLocalAddr);
+        guint dst_ip = _byteswap_ulong(mibTable->table[i].dwRemoteAddr);
+        guint src_port = _byteswap_ushort((unsigned short)mibTable->table[i].dwLocalPort);
+        guint dst_port = _byteswap_ushort((unsigned short)mibTable->table[i].dwRemotePort);
+        guint pid = mibTable->table[i].dwOwningPid;
+
+        guint h_local = src_ip + src_port;
+        guint h_remote = dst_ip + dst_port;
+        guint h_pair = h_local + h_remote;
+
+        netstat_t* e;
+
+        /* 添加以下项目到哈希表中：
+           - src->dst and dst->src to pair_hash[src:dst]  -- note that hash(src:dst) == hash(dst:src)
+           - src->dst and dst->src to addr_hash[src]
+           - src->dst and dst->src to addr_hash[dst]
+
+           dst:src is also added in order to find packets coming in both directions
+           netstat_t带有next指针，用它可以将相同哈希值的元素串在一起。
+        */
+
+        //
+        // 要假设数据包为出去的包
+        // netstat_t.local ip = IP包的source ip
+        // netstat_t.remote ip = IP包的destination ip
+        // 同时，让addr_hash[src_ip + src_port] = addr_hash[dst_ip + dst_port]
+        //
+        e = g_malloc(sizeof(netstat_t));
+        if (!e)
+            break;
+        e->loc_ip = src_ip;
+        e->rem_ip = dst_ip;
+        e->loc_port = src_port;
+        e->rem_port = dst_port;
+        e->proto = IP_PROTO_TCP;
+        e->pid = pid;
+        e->next = addr_hash[h_local % HASH_SIZE];
+        addr_hash[h_local % HASH_SIZE] = e;
+
+        e = g_malloc(sizeof(netstat_t));
+        if (!e)
+            break;
+        e->loc_ip = src_ip;
+        e->rem_ip = dst_ip;
+        e->loc_port = src_port;
+        e->rem_port = dst_port;
+        e->proto = IP_PROTO_TCP;
+        e->pid = pid;
+        e->next = addr_hash[h_remote % HASH_SIZE];
+        addr_hash[h_remote % HASH_SIZE] = e;
+
+        //
+        // 要假设数据包是回来的包
+        // netstat_t.local ip = IP数据包.destination IP.
+        // netstat_t.remote ip = IP数据包.source IP
+        // 同时，让addr_hash[src_ip + src_port] = addr_hash[dst_ip + dst_port]
+        //
+        e = g_malloc(sizeof(netstat_t));
+        if (!e)
+            break;
+        e->loc_ip = dst_ip;
+        e->rem_ip = src_ip;
+        e->loc_port = dst_port;
+        e->rem_port = src_port;
+        e->proto = IP_PROTO_TCP;
+        e->pid = pid;
+        e->next = addr_hash[h_local % HASH_SIZE];
+        addr_hash[h_local % HASH_SIZE] = e;
+
+        e = g_malloc(sizeof(netstat_t));
+        if (!e)
+            break;
+        e->loc_ip = dst_ip;
+        e->rem_ip = src_ip;
+        e->loc_port = dst_port;
+        e->rem_port = src_port;
+        e->proto = IP_PROTO_TCP;
+        e->pid = pid;
+        e->next = addr_hash[h_remote % HASH_SIZE];
+        addr_hash[h_remote % HASH_SIZE] = e;
+
+        //
+        // pair_hash[src_ip + src_port + dst_ip + dst_port] = e;
+        //
+        // 假设是出去方向，netstat_t.local ip = IP包的source ip。
+        e = g_malloc(sizeof(netstat_t));
+        if (!e)
+            break;
+        e->loc_ip = src_ip;
+        e->rem_ip = dst_ip;
+        e->loc_port = src_port;
+        e->rem_port = dst_port;
+        e->proto = IP_PROTO_TCP;
+        e->pid = pid;
+        e->next = pair_hash[h_pair % HASH_SIZE];
+        pair_hash[h_pair % HASH_SIZE] = e;
+
+        // 假设是回来方向，netstat_t.local ip = IP数据包.destination IP.。
+        e = g_malloc(sizeof(netstat_t));
+        if (!e)
+            break;
+        e->loc_ip = dst_ip;
+        e->rem_ip = src_ip;
+        e->loc_port = dst_port;
+        e->rem_port = src_port;
+        e->proto = IP_PROTO_TCP;
+        e->pid = pid;
+        e->next = pair_hash[h_pair % HASH_SIZE];
+        pair_hash[h_pair % HASH_SIZE] = e;
+    }
+
+    g_free(buf);
+}
+
+const char* process_info_lookup(tvbuff_t* tvb)
+{
+    static char buf[64];
+    guint ip_vhl = tvb_get_guint8(tvb, 0);
+    //guint ip_len = tvb_get_ntohs(tvb, 2);
+    guint8 ip_proto = tvb_get_guint8(tvb, 9);
+    guint proto_ofs;
+    guint src_ip = tvb_get_ntohl(tvb, 12);
+    guint dst_ip = tvb_get_ntohl(tvb, 16);
+    guint16 src_port;
+    guint16 dst_port;
+    guint pid;
+    procinfo_t* info;
+
+    if (ip_vhl >> 4 != 4)
+        return NULL;
+    if (ip_proto != IP_PROTO_TCP /* && ip_proto != IP_PROTO_UDP */)
+        return NULL;
+
+    proto_ofs = (ip_vhl & 0xf) * 4;
+
+    src_port = tvb_get_ntohs(tvb, proto_ofs + 0);
+    dst_port = tvb_get_ntohs(tvb, proto_ofs + 2);
+
+    pid = lookup_addrs(ip_proto, src_ip, src_port, dst_ip, dst_port);
+    if (!pid) {
+        netstat_update();
+        pid = lookup_addrs(ip_proto, src_ip, src_port, dst_ip, dst_port);
+        if (!pid)
+            return NULL;
+    }
+
+    info = lookup_pid(pid);
+    if (!info)
+        return NULL;
+    return info->name;
+}
+
+#else /* _WIN32 */
+
+const char* process_info_lookup(tvbuff_t* tvb) { return NULL; }
+
+#endif /* _WIN32 */
+```
+
+代码非常简短，实现思路也非常简单，使用 GetExtendedTcpTable 实现类似 netstat 命令的效果，获取当前所有连接的源 IP、源端口、目标 IP、目标端口、PID 等，然后使用几种 IP 加端口的不同方法做哈希放到几个哈希表中。当有个 IP 包要解析的时候程序就去这个哈希表里匹配，匹配到就返回 PID 对应的进程名字，要是匹配到就再执行一次 GetExtendedTcpTable 刷新整个哈希表并再其中查询。
+
+# 三 在协议树里添加进程名
+
+在协议树中添加的未知是 IP 报文协议部分，在原有的数据解析完成后在协议树的尾部添加一个新节点 “Process Info:”。这个修改在 packet-ip.c 文件中做，具体由这个 add_process_info 函数实现：
+
+```
+static void
+add_process_info(proto_tree * tree, tvbuff_t * tvb, gint offset){
+  proto_item* process_info_item;
+  proto_tree* process_info_tree;
+  proto_item* item;
+  const char* process_name;
+
+  process_name = process_info_lookup(tvb);
+  if (!process_name)
+    return;
+  process_info_item = proto_tree_add_text_internal(tree, tvb, offset + IPH_SRC, 4, "Process Info: ");
+  PROTO_ITEM_SET_GENERATED(process_info_item);
+
+  process_info_tree = proto_item_add_subtree(process_info_item, ett_ip_process_info);
+  item = proto_tree_add_string(process_info_tree, hf_ip_process, tvb, offset, 4, process_name);
+  PROTO_ITEM_SET_GENERATED(item);
+}
+```
+
+也比较简单，首先是查 IP 包有没有对应的进程，没有就不管。
+
+否则就往树中添加一个节点 “Process Info:”，然后在它下面在创建一个字符串子节点，最后把进程名赋予它。
+
+调用这个函数的地方是 dissect_ip_v4 这个解析 IPv4 数据包的地方，在此函数靠近尾部的地方调用即可。
+
+最终的结果类似这样：
+
+!https://img-blog.csdnimg.cn/d59aaefcce1d4774b9fa14b1801dda3c.jpg?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAVmluYw==,size_20,color_FFFFFF,t_70,g_se,x_16
+
+右键，选” 在过滤器中应用 “，在顶部的过滤器中展示的内容是：
+
+ip.process == “\Device\HarddiskVolume8\Program Files (x86)\Google\Chrome\Application\chrome.exe”
+
+这样就可以根据进程路径过滤了。
+
+# 四 其他
+
+完整的修改在这里可以找到：
+
+[TurtleRock: 测试用。 - Gitee.com](https://gitee.com/duocore/turtle-rock/tree/master/WiresharkProcessNameFilter)
+
+或者这里：
+
+https://download.csdn.net/download/lanzheng_1113/34964722
+
+链接时会提示缺少符号，添加 iphlpapi.lib 到链接器就可以了。
+
+程序目前由几个大缺陷和 BUG：
+
+- 只支持 TCP 协议，UDP 协议不支持。
+- 有些 IP 包解析后没有 Process Info: 字段。
+- 偶发 crash，似乎和内存释放有关（暂不确定是不是因为此文中的修改导致，暂时没有空排查）
+
+这几个问题等有空了再好好研究。 > 本文由简悦 SimpRead 转码
