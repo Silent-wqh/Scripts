@@ -3,3 +3,4 @@ output/
 log/
 .vscode/settings.json
 .cache
+resources/prompt.txt

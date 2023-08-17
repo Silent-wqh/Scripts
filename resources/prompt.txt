@@ -1,501 +1,211 @@
-你扮演文章摘要者,对提供的文章进行摘要。摘要应简明扼要地反映文章关键观点,使用自己的话语,不加个人观点,准确客观地传达文章信息。你的回复应当用中文完成并且回复只包括你的总结的全文避免出现任何其他的话语。请保证你的总结格式直观易读。然后你再给这篇文章打5个标签，标签要简洁但能清楚反应文章的话题，标签之间要以空格隔开。并且你也要给出一个这个文章的标题，标题要很好的反应文章主要内容。你明白了吗？如果你明白了就回复明白了并描述任务。之后我会给你文章让你总结摘要。
+"""
+这个程序是一个 Spotify 歌单管理工具，使用 Spotify 的 API 来读取和修改用户的歌单。
 
----格式---
-标题：{标题}
-标签：`{标签1}` `{标签2}` `{标签3}` `{标签4}` `{标签5}`
-# 摘要
+该程序接受以下命令行参数：
 
-{总结正文}
+- playlist-a：歌单A的名称。程序会读取这个歌单的所有歌曲。
+- playlist-b：歌单B的名称。程序会将符合筛选条件的歌曲添加到这个歌单。
+- playlist-c：歌单C的名称。程序会将不符合筛选条件的歌曲添加到这个歌单。
+- filter：筛选条件。可以是 "contains_chinese" 或 "not_contains_chinese"。前者会筛选出名称中包含中文的歌曲，后者会筛选出名称中不包含中文的歌曲。
 
-# 正文
-不需要给出正文。
+这些参数也可以通过一个名为 "spotify_playlist_manager_config.yaml" 的配置文件提供。配置文件应该放在程序所在路径的 "config" 目录下。
 
----例子---
-标题：中国企业在非洲：机遇与挑战
-标签：`非洲` `投资` `中国企业` `地区差异` `共同发展`
-# 摘要
+配置文件的结构如下：
 
-原文介绍了中国企业在非洲投资的现状和面临的挑战。文章指出,近年来中国企业对非洲投资持续增长,已经成为非洲最大的外来直接投资国。中国企业主要投资非洲采矿、能源、基础设施等领域。非洲市场广阔,资源丰富,有利于中国企业“走出去”。但是中国企业在非洲也面临文化差异、政治风险、安全问题等挑战。文章建议中国企业要树立负责任的形象,与当地社区和谐共生,实现共同发展。
+```yaml
+playlist_a: "Playlist A Name"
+playlist_b: "Playlist B Name"
+playlist_c: "Playlist C Name"
+filter: "contains_chinese"
+client_id: "Your Spotify App Client ID"
+client_secret: "Your Spotify App Client Secret"
+redirect_uri: "Your Spotify App Redirect URI"
+```
 
-# 正文
+其中：
+
+- playlist_a：歌单A的名称。
+- playlist_b：歌单B的名称。
+- playlist_c：歌单C的名称。
+- filter：筛选条件。可以是 "contains_chinese" 或 "not_contains_chinese"。
+- client_id：你的 Spotify App 的 Client ID。
+- client_secret：你的 Spotify App 的 Client Secret。
+- redirect_uri：你的 Spotify App 的 Redirect URI。
+
+命令行参数会覆盖配置文件中的相应设置。
+"""
+
+import os
+import argparse
+import yaml
+import time
+import re
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+import collections
+
+# 定义命令行参数
+parser = argparse.ArgumentParser(description='Manage Spotify playlists.')
+parser.add_argument('--playlist-a', help='Name of Playlist A')
+parser.add_argument('--filter', help='Filter condition for language')
+args = parser.parse_args()
+
+# 读取配置文件
+print("Reading configuration file...")
+config_path = os.path.join(os.path.dirname(__file__), 'config', 'spotify_playlist_manager_config.yaml')
+with open(config_path, 'r', encoding="utf8") as f:
+    config = yaml.safe_load(f)
+
+print("Setting up configurations...")
+if args.playlist_a:
+    config['playlist_a'] = args.playlist_a
+if args.filter:
+    config['filter'] = args.filter
+
+print("Connecting to Spotify...")
+sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=config['client_id'],
+                                               client_secret=config['client_secret'],
+                                               redirect_uri=config['redirect_uri'],
+                                               scope='playlist-modify-public'))
+
+def classify_language(song):
+    if song and song.get('track') and song['track'].get('name'):
+        if re.search('[\u4e00-\u9fff]', song['track']['name']):
+            return '中文'
+        else:
+            return '非中文'
+    return '非中文'  # 默认情况下，如果上面的条件都不满足，则返回“非中文”
+
+def classify_emotion(track_features):
+    emotions = []
+
+    energy = track_features['energy']
+    danceability = track_features['danceability']
+    mode = track_features['mode']
+
+    # 快乐
+    if energy > 0.7 and danceability > 0.7:
+        emotions.append('快乐')
+
+    # 悲伤
+    if energy < 0.4 and danceability < 0.4:
+        emotions.append('悲伤')
+
+    # 宁静/放松
+    if energy < 0.3 and danceability < 0.3:
+        emotions.append('宁静/放松')
+
+    # 愤怒/激烈
+    if energy > 0.8 and danceability > 0.6:
+        emotions.append('愤怒/激烈')
+
+    # 浪漫/甜蜜
+    if 0.4 <= energy <= 0.7 and 0.4 <= danceability <= 0.7 and mode == 1:
+        emotions.append('浪漫/甜蜜')
+
+    # 中性
+    if not emotions:
+        emotions.append('中性')
+
+    return emotions
+
+# 获取歌单 A 的所有歌曲
+def get_all_songs(playlist_id):
+    all_songs = []
+    response = sp.playlist_tracks(playlist_id)
+    total_tracks = response.get('total', 0)
+    print(f"Getting information for {total_tracks} songs from the playlist...")
+
+    while response:
+        items = response.get('items', [])
+        all_songs.extend(items)
+        print(f"Fetching information for songs {len(all_songs)+1}-{len(all_songs)+len(items)}...")
+        response = sp.next(response)
+
+    return all_songs, [item['track']['id'] for item in all_songs]
+
+print("Fetching songs from playlist {}...".format(config['playlist_a']))
+songs, song_ids = get_all_songs(config['playlist_a'])
+existing_song_ids = {config['playlist_a']: set(song_ids)}
+
+for key in config['languages'].values():
+    _, song_ids = get_all_songs(key)
+    existing_song_ids[key] = set(song_ids)
+
+for key in config['emotions'].values():
+    _, song_ids = get_all_songs(key)
+    existing_song_ids[key] = set(song_ids)
+
+print(f"Found {len(songs)} songs in the source playlist.")
+
+print("Classifying songs based on language and emotion...")
+for i, song_item in enumerate(songs):
+    track = song_item['track']
+
+    # 显示歌曲信息
+    print(f"{i+1}/{len(songs)} Song: {track['name']}")
+
+    # 进行语言分类
+    print("    Classifying song based on language...")
+    language = classify_language(song_item)
+    print(f"    Song is classified as {language}.")
+    language_playlist_id = config['languages'].get(language)
+    if track['uri'] and language_playlist_id and track['id'] not in existing_song_ids[language_playlist_id]:
+        try:
+            sp.playlist_add_items(language_playlist_id, [track['uri']])
+            print(f"    Added song to {language} Playlist: {track['name']}")
+        except spotipy.SpotifyException as e:
+            if 'Unsupported URL / URI.' in str(e):
+                print(f"Cannot add song {track['name']} due to unsupported URI. The song might have been removed from Spotify.")
+            elif 'Retry-After' in e.headers:
+                print(f"Rate limit exceeded, waiting for {e.headers['Retry-After']} seconds")
+                time.sleep(int(e.headers['Retry-After']) + 2)
+            else:
+                print(f"Error adding song to {language} Playlist: {e}")
+
+    # 进行情绪分类
+    print("    Classifying song based on emotion...")
+    if track['id']:
+        track_features = sp.audio_features([track['id']])[0]
+        emotions = classify_emotion(track_features)
+        print(f"    Song is classified with emotions: {emotions}.")
+        for emotion in emotions:
+            emotion_playlist_id = config['emotions'].get(emotion)
+            if track['uri'] and emotion_playlist_id and track['id'] not in existing_song_ids[emotion_playlist_id]:
+                try:
+                    sp.playlist_add_items(emotion_playlist_id, [track['uri']])
+                    print(f"    Added song to {emotion} Playlist: {track['name']}")
+                except spotipy.SpotifyException as e:
+                    if 'Unsupported URL / URI.' in str(e):
+                        print(f"Cannot add song {track['name']} due to unsupported URI. The song might have been removed from Spotify.")
+                    elif 'Retry-After' in e.headers:
+                        print(f"Rate limit exceeded, waiting for {e.headers['Retry-After']} seconds")
+                        time.sleep(int(e.headers['Retry-After']) + 2)
+                    else:
+                        print(f"Error adding song to {emotion} Playlist: {e}")
+    else:
+        print(f"    Skipping emotion classification for song {i+1}/{len(songs)} due to missing track ID.")
+
+def remove_duplicates_from_playlist(playlist_id, existing_song_ids):
+    song_ids_in_playlist = existing_song_ids[playlist_id]
+    duplicate_ids = [item for item, count in collections.Counter(song_ids_in_playlist).items() if count > 1]
+
+    if duplicate_ids:
+        print(f"Found {len(duplicate_ids)} duplicate songs in playlist ID {playlist_id}. Removing them...")
+
+    for track_id in duplicate_ids:
+        sp.playlist_remove_all_occurrences_of_items(playlist_id, [track_id])
+        print(f"Removed all occurrences of song with track ID {track_id} from playlist ID {playlist_id}.")
+
+    if duplicate_ids:
+        print(f"Finished removing duplicates from playlist ID {playlist_id}.")
+
+# 用于每个歌单
+remove_duplicates_from_playlist(config['playlist_a'], existing_song_ids)
+for playlist_id in config['languages'].values():
+    remove_duplicates_from_playlist(playlist_id, existing_song_ids)
+
+print("All songs have been classified and added to the respective playlists.")
+print("\nTask Completed!")
 ---
-下面是需要整理的文章
----
-标题：在 Wireshark 中按进程过滤_wireshark 进程_Vinc 的博客 - CSDN 博客
-
-# 一 简介
-
-在使用 [wireshark](https://so.csdn.net/so/search?q=wireshark&spm=1001.2101.3001.7020) 时，最烦恼的事莫过于在海量的数据包筛选出所需要的内容。特别我们需要分析一个特定的程序的协议时，这时候如果有一个可以把进程名作为过滤器就完美了。在上网查阅资料时发现有一个实现，不过版本比较古老，是 2012 年十一月的，原文在这里：
-
-[Wireshark · Wireshark-dev: Re: [Wireshark-dev] [PATCH] Filter by local process name](https://www.wireshark.org/lists/wireshark-dev/201212/msg00070.html)
-
-我参照它的代码在最近的版本中实现了一下，发现确实可用。
-
-我在这个版本的基础上修改：
-
-Revision: 0b8acdaf689b6a4bd3d6fc7c14ac20f172831a3e
-
-Author: Oscar Gonzalez de Dios [oscar.gonzalezdedios@telefonica.com](mailto:oscar.gonzalezdedios@telefonica.com)
-
-Date: 2021/7/28 22:38:58
-
-Message:
-
-Fixed trailing whitespaces
-
----
-
-Modified: epan/dissectors/packet-pcep.c
-
-# 二 获取 IP 包对应的进程
-
-首先要把进程和端口号关联在一起，每个连接使用的端口都是唯一的，在 windows 下可以使用 netstat 命令查询每个连接对应的源地址、目标地址、端口和进程 PID。这里是通过 process_info.h 和 process_info.c 实现。
-
-process_info.h
-
-```
-/* process_info.h
- * Process information (pid, process name)
- *
- * $Id$
- *
- * Wireshark - Network traffic analyzer
- * By Bogdan Harjoc <harjoc@gmail.com>
- * Copyright 1998 Gerald Combs
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-#ifndef __PROCESS_INFO_H__
-#define __PROCESS_INFO_H__
-
-#include <epan/packet.h>
-
-/** returns the name of the process based on the src:port - dst:port data from tvb */
-const char *process_info_lookup(tvbuff_t *tvb);
-
-#endif /* process_info.h */
-```
-
-process_info.c
-
-```
-/* process_info.c
- * Process information (pid, process name)
- *
- * $Id$
- *
- * Wireshark - Network traffic analyzer
- * By Bogdan Harjoc <harjoc@gmail.com>
- * Copyright 1998 Gerald Combs
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-#ifdef _WIN32
-
-#include "config.h"
-
-#include <glib.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <windows.h>
-#include <winsock.h>
-#include <Iphlpapi.h>
-#include <Psapi.h>
-
-#include "process_info.h"
-
-#include <epan/ipproto.h>
-
-typedef struct netstat {
-    struct netstat* next;
-    guint loc_ip;
-    guint rem_ip;
-    guint16 loc_port;
-    guint16 rem_port;
-    guint16 proto;
-    guint pid;
-} netstat_t;
-
-typedef struct procinfo {
-    struct procinfo* next;
-    guint pid;
-    char name[1];
-} procinfo_t;
-
-#define HASH_SIZE 971
-
-static procinfo_t* process_hash[HASH_SIZE] = { 0 };
-static netstat_t* addr_hash[HASH_SIZE] = { 0 };
-static netstat_t* pair_hash[HASH_SIZE] = { 0 };
-
-/**
- * 先查询PID是否已经在哈希表process_hash中，如果已存在则直接返回。
- * 否则通过ID打开进程，查询它的进程名，并存放到哈希表内。
- */
-static procinfo_t* lookup_pid(guint pid)
-{
-    procinfo_t* e;
-    HANDLE hproc;
-    static wchar_t process_name[MAX_PATH] = { 0 };
-    guint len;
-
-    // 在哈希表内查询，注意循环的作用是查询具有相同哈希值的所有procinfo_t结构
-    for (e = process_hash[pid % HASH_SIZE]; e; e = e->next)
-        if (e->pid == pid)
-            return e;
-
-    // 可能这里需要提权？
-    hproc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-    if (!hproc)
-        return NULL;
-
-    len = GetProcessImageFileName(hproc, process_name, MAX_PATH);
-    CloseHandle(hproc);
-    if (len == 0)
-        return NULL;
-
-    e = g_malloc(offsetof(procinfo_t, name) + (len + 1));
-    if (!e)
-        return NULL;
-
-    /* must convert properly using WideCharToMultiByte here */
-    _snprintf(e->name, len + 1, "%.*S", len, process_name);
-    e->name[len] = 0;
-
-    e->pid = pid;
-    e->next = process_hash[pid % HASH_SIZE];
-    process_hash[pid % HASH_SIZE] = e;
-
-    return e;
-}
-
-static guint lookup_addrs(guint16 proto, guint src_ip, guint16 src_port, guint dst_ip, guint16 dst_port)
-{
-    guint h_local = src_ip + src_port;
-    guint h_remote = dst_ip + dst_port;
-    guint h_pair = h_local + h_remote;
-    netstat_t* e;
-
-    /* src:dst matches src -> dst  or  dst -> src (established/connecting/closed/...) */
-    for (e = pair_hash[h_pair % HASH_SIZE]; e; e = e->next)
-        if ((e->loc_ip == src_ip && e->rem_ip == dst_ip && e->loc_port == src_port && e->rem_port == dst_port) ||
-            (e->loc_ip == dst_ip && e->rem_ip == src_ip && e->loc_port == dst_port && e->rem_port == src_port))
-            if (e->proto == proto)
-                return e->pid;
-
-    /* src matches src -> 0.0.0.0:0 (listening) */
-    for (e = addr_hash[h_local % HASH_SIZE]; e; e = e->next)
-        if (e->loc_ip == src_ip && e->loc_port == src_port && e->rem_ip == 0 && e->rem_port == 0)
-            if (e->proto == proto)
-                return e->pid;
-
-    /* dst matches dst -> 0.0.0.0:0 (listening) */
-    for (e = addr_hash[h_remote % HASH_SIZE]; e; e = e->next)
-        if (e->loc_ip == dst_ip && e->loc_port == dst_port && e->rem_ip == 0 && e->rem_port == 0)
-            if (e->proto == proto)
-                return e->pid;
-
-    /* src matches src -> something  or  something -> src (netstat and winpcap see different IP addrs) */
-    for (e = addr_hash[h_local % HASH_SIZE]; e; e = e->next)
-        if ((e->loc_ip == src_ip && e->loc_port == src_port && e->rem_port == dst_port) ||
-            (e->rem_ip == src_ip && e->rem_port == src_port && e->loc_port == dst_port))
-            if (e->proto == proto)
-                return e->pid;
-
-    /* dst matches dst -> something  or  something -> dst (netstat and winpcap see different IP addrs) */
-    for (e = addr_hash[h_remote % HASH_SIZE]; e; e = e->next)
-        if ((e->loc_ip == dst_ip && e->loc_port == dst_port && e->rem_port == src_port) ||
-            (e->rem_ip == dst_ip && e->rem_port == dst_port && e->loc_port == src_port))
-            if (e->proto == proto)
-                return e->pid;
-
-    return 0;
-}
-
-static void netstat_update()
-{
-    guint buf_size = 0;
-    guint h;
-    char* buf = NULL;
-    //netstat_t* e = NULL;
-    int ret;
-    unsigned i;
-    MIB_TCPTABLE_OWNER_PID* mibTable;
-
-    /**
-     * 清除addr_hash和pair_hash两个哈希表的值。
-     */
-    for (h = 0; h < HASH_SIZE; h++) {
-        while (addr_hash[h]) {
-            netstat_t* head = addr_hash[h];
-            addr_hash[h] = addr_hash[h]->next;
-            g_free(head);
-        }
-        while (pair_hash[h]) {
-            netstat_t* head = pair_hash[h];
-            pair_hash[h] = pair_hash[h]->next;
-            g_free(head);
-        }
-    }
-
-    /* 执行netstat */
-    ret = GetExtendedTcpTable(NULL, &buf_size, FALSE, AF_INET, TCP_TABLE_OWNER_PID_ALL, 0);
-    if (ret == ERROR_INSUFFICIENT_BUFFER) {
-        buf = g_malloc(buf_size);
-        if (!buf) return;
-        ret = GetExtendedTcpTable(buf, &buf_size, FALSE, AF_INET, TCP_TABLE_OWNER_PID_ALL, 0);
-    }
-    if (ret != NO_ERROR) {
-        g_free(buf);
-        return;
-    }
-
-    mibTable = (MIB_TCPTABLE_OWNER_PID*)buf;
-    for (i = 0; i < mibTable->dwNumEntries; i++) {
-        guint src_ip = _byteswap_ulong(mibTable->table[i].dwLocalAddr);
-        guint dst_ip = _byteswap_ulong(mibTable->table[i].dwRemoteAddr);
-        guint src_port = _byteswap_ushort((unsigned short)mibTable->table[i].dwLocalPort);
-        guint dst_port = _byteswap_ushort((unsigned short)mibTable->table[i].dwRemotePort);
-        guint pid = mibTable->table[i].dwOwningPid;
-
-        guint h_local = src_ip + src_port;
-        guint h_remote = dst_ip + dst_port;
-        guint h_pair = h_local + h_remote;
-
-        netstat_t* e;
-
-        /* 添加以下项目到哈希表中：
-           - src->dst and dst->src to pair_hash[src:dst]  -- note that hash(src:dst) == hash(dst:src)
-           - src->dst and dst->src to addr_hash[src]
-           - src->dst and dst->src to addr_hash[dst]
-
-           dst:src is also added in order to find packets coming in both directions
-           netstat_t带有next指针，用它可以将相同哈希值的元素串在一起。
-        */
-
-        //
-        // 要假设数据包为出去的包
-        // netstat_t.local ip = IP包的source ip
-        // netstat_t.remote ip = IP包的destination ip
-        // 同时，让addr_hash[src_ip + src_port] = addr_hash[dst_ip + dst_port]
-        //
-        e = g_malloc(sizeof(netstat_t));
-        if (!e)
-            break;
-        e->loc_ip = src_ip;
-        e->rem_ip = dst_ip;
-        e->loc_port = src_port;
-        e->rem_port = dst_port;
-        e->proto = IP_PROTO_TCP;
-        e->pid = pid;
-        e->next = addr_hash[h_local % HASH_SIZE];
-        addr_hash[h_local % HASH_SIZE] = e;
-
-        e = g_malloc(sizeof(netstat_t));
-        if (!e)
-            break;
-        e->loc_ip = src_ip;
-        e->rem_ip = dst_ip;
-        e->loc_port = src_port;
-        e->rem_port = dst_port;
-        e->proto = IP_PROTO_TCP;
-        e->pid = pid;
-        e->next = addr_hash[h_remote % HASH_SIZE];
-        addr_hash[h_remote % HASH_SIZE] = e;
-
-        //
-        // 要假设数据包是回来的包
-        // netstat_t.local ip = IP数据包.destination IP.
-        // netstat_t.remote ip = IP数据包.source IP
-        // 同时，让addr_hash[src_ip + src_port] = addr_hash[dst_ip + dst_port]
-        //
-        e = g_malloc(sizeof(netstat_t));
-        if (!e)
-            break;
-        e->loc_ip = dst_ip;
-        e->rem_ip = src_ip;
-        e->loc_port = dst_port;
-        e->rem_port = src_port;
-        e->proto = IP_PROTO_TCP;
-        e->pid = pid;
-        e->next = addr_hash[h_local % HASH_SIZE];
-        addr_hash[h_local % HASH_SIZE] = e;
-
-        e = g_malloc(sizeof(netstat_t));
-        if (!e)
-            break;
-        e->loc_ip = dst_ip;
-        e->rem_ip = src_ip;
-        e->loc_port = dst_port;
-        e->rem_port = src_port;
-        e->proto = IP_PROTO_TCP;
-        e->pid = pid;
-        e->next = addr_hash[h_remote % HASH_SIZE];
-        addr_hash[h_remote % HASH_SIZE] = e;
-
-        //
-        // pair_hash[src_ip + src_port + dst_ip + dst_port] = e;
-        //
-        // 假设是出去方向，netstat_t.local ip = IP包的source ip。
-        e = g_malloc(sizeof(netstat_t));
-        if (!e)
-            break;
-        e->loc_ip = src_ip;
-        e->rem_ip = dst_ip;
-        e->loc_port = src_port;
-        e->rem_port = dst_port;
-        e->proto = IP_PROTO_TCP;
-        e->pid = pid;
-        e->next = pair_hash[h_pair % HASH_SIZE];
-        pair_hash[h_pair % HASH_SIZE] = e;
-
-        // 假设是回来方向，netstat_t.local ip = IP数据包.destination IP.。
-        e = g_malloc(sizeof(netstat_t));
-        if (!e)
-            break;
-        e->loc_ip = dst_ip;
-        e->rem_ip = src_ip;
-        e->loc_port = dst_port;
-        e->rem_port = src_port;
-        e->proto = IP_PROTO_TCP;
-        e->pid = pid;
-        e->next = pair_hash[h_pair % HASH_SIZE];
-        pair_hash[h_pair % HASH_SIZE] = e;
-    }
-
-    g_free(buf);
-}
-
-const char* process_info_lookup(tvbuff_t* tvb)
-{
-    static char buf[64];
-    guint ip_vhl = tvb_get_guint8(tvb, 0);
-    //guint ip_len = tvb_get_ntohs(tvb, 2);
-    guint8 ip_proto = tvb_get_guint8(tvb, 9);
-    guint proto_ofs;
-    guint src_ip = tvb_get_ntohl(tvb, 12);
-    guint dst_ip = tvb_get_ntohl(tvb, 16);
-    guint16 src_port;
-    guint16 dst_port;
-    guint pid;
-    procinfo_t* info;
-
-    if (ip_vhl >> 4 != 4)
-        return NULL;
-    if (ip_proto != IP_PROTO_TCP /* && ip_proto != IP_PROTO_UDP */)
-        return NULL;
-
-    proto_ofs = (ip_vhl & 0xf) * 4;
-
-    src_port = tvb_get_ntohs(tvb, proto_ofs + 0);
-    dst_port = tvb_get_ntohs(tvb, proto_ofs + 2);
-
-    pid = lookup_addrs(ip_proto, src_ip, src_port, dst_ip, dst_port);
-    if (!pid) {
-        netstat_update();
-        pid = lookup_addrs(ip_proto, src_ip, src_port, dst_ip, dst_port);
-        if (!pid)
-            return NULL;
-    }
-
-    info = lookup_pid(pid);
-    if (!info)
-        return NULL;
-    return info->name;
-}
-
-#else /* _WIN32 */
-
-const char* process_info_lookup(tvbuff_t* tvb) { return NULL; }
-
-#endif /* _WIN32 */
-```
-
-代码非常简短，实现思路也非常简单，使用 GetExtendedTcpTable 实现类似 netstat 命令的效果，获取当前所有连接的源 IP、源端口、目标 IP、目标端口、PID 等，然后使用几种 IP 加端口的不同方法做哈希放到几个哈希表中。当有个 IP 包要解析的时候程序就去这个哈希表里匹配，匹配到就返回 PID 对应的进程名字，要是匹配到就再执行一次 GetExtendedTcpTable 刷新整个哈希表并再其中查询。
-
-# 三 在协议树里添加进程名
-
-在协议树中添加的未知是 IP 报文协议部分，在原有的数据解析完成后在协议树的尾部添加一个新节点 “Process Info:”。这个修改在 packet-ip.c 文件中做，具体由这个 add_process_info 函数实现：
-
-```
-static void
-add_process_info(proto_tree * tree, tvbuff_t * tvb, gint offset){
-  proto_item* process_info_item;
-  proto_tree* process_info_tree;
-  proto_item* item;
-  const char* process_name;
-
-  process_name = process_info_lookup(tvb);
-  if (!process_name)
-    return;
-  process_info_item = proto_tree_add_text_internal(tree, tvb, offset + IPH_SRC, 4, "Process Info: ");
-  PROTO_ITEM_SET_GENERATED(process_info_item);
-
-  process_info_tree = proto_item_add_subtree(process_info_item, ett_ip_process_info);
-  item = proto_tree_add_string(process_info_tree, hf_ip_process, tvb, offset, 4, process_name);
-  PROTO_ITEM_SET_GENERATED(item);
-}
-```
-
-也比较简单，首先是查 IP 包有没有对应的进程，没有就不管。
-
-否则就往树中添加一个节点 “Process Info:”，然后在它下面在创建一个字符串子节点，最后把进程名赋予它。
-
-调用这个函数的地方是 dissect_ip_v4 这个解析 IPv4 数据包的地方，在此函数靠近尾部的地方调用即可。
-
-最终的结果类似这样：
-
-!https://img-blog.csdnimg.cn/d59aaefcce1d4774b9fa14b1801dda3c.jpg?x-oss-process=image/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAVmluYw==,size_20,color_FFFFFF,t_70,g_se,x_16
-
-右键，选” 在过滤器中应用 “，在顶部的过滤器中展示的内容是：
-
-ip.process == “\Device\HarddiskVolume8\Program Files (x86)\Google\Chrome\Application\chrome.exe”
-
-这样就可以根据进程路径过滤了。
-
-# 四 其他
-
-完整的修改在这里可以找到：
-
-[TurtleRock: 测试用。 - Gitee.com](https://gitee.com/duocore/turtle-rock/tree/master/WiresharkProcessNameFilter)
-
-或者这里：
-
-https://download.csdn.net/download/lanzheng_1113/34964722
-
-链接时会提示缺少符号，添加 iphlpapi.lib 到链接器就可以了。
-
-程序目前由几个大缺陷和 BUG：
-
-- 只支持 TCP 协议，UDP 协议不支持。
-- 有些 IP 包解析后没有 Process Info: 字段。
-- 偶发 crash，似乎和内存释放有关（暂不确定是不是因为此文中的修改导致，暂时没有空排查）
-
-这几个问题等有空了再好好研究。 > 本文由简悦 SimpRead 转码
+仿照原有的开头说明，给这个新程序重写一个说明。只给出代码块里的注释形式的说明即可，不用给出程序全文。
