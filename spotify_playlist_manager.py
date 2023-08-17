@@ -46,9 +46,7 @@ from spotipy.oauth2 import SpotifyOAuth
 # 定义命令行参数
 parser = argparse.ArgumentParser(description='Manage Spotify playlists.')
 parser.add_argument('--playlist-a', help='Name of Playlist A')
-parser.add_argument('--playlist-b', help='Name of Playlist B')
-parser.add_argument('--playlist-c', help='Name of Playlist C')
-parser.add_argument('--filter', help='Filter condition')
+parser.add_argument('--filter', help='Filter condition for language')
 args = parser.parse_args()
 
 # 读取配置文件
@@ -59,10 +57,6 @@ with open(config_path, 'r', encoding="utf8") as f:
 # 覆盖配置文件中的信息
 if args.playlist_a:
     config['playlist_a'] = args.playlist_a
-if args.playlist_b:
-    config['playlist_b'] = args.playlist_b
-if args.playlist_c:
-    config['playlist_c'] = args.playlist_c
 if args.filter:
     config['filter'] = args.filter
 
@@ -72,60 +66,76 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=config['client_id'],
                                                redirect_uri=config['redirect_uri'],
                                                scope='playlist-modify-public'))
 
+def classify_language(song):
+    if song and song.get('track') and song['track'].get('name'):
+        if config['filter'] == "contains_chinese" and re.search('[\u4e00-\u9fff]', song['track']['name']):
+            return '中文'
+        elif config['filter'] == "not_contains_chinese" and not re.search('[\u4e00-\u9fff]', song['track']['name']):
+            return '非中文'
+    return None
+
+def classify_emotion(track_features):
+    energy = track_features['energy']
+    danceability = track_features['danceability']
+    mode = track_features['mode']
+
+    if energy > 0.7 and danceability > 0.7 and mode == 1:
+        return '快乐'
+    elif energy < 0.4 and danceability < 0.4 and mode == 0:
+        return '悲伤'
+    elif energy < 0.3 and danceability < 0.3:
+        return '宁静/放松'
+    elif energy > 0.7 and danceability > 0.5:
+        return '愤怒/激烈'
+    elif 0.4 < energy < 0.7 and 0.4 < danceability < 0.7 and mode == 1:
+        return '浪漫/甜蜜'
+    else:
+        return None
+
 # 获取歌单 A 的所有歌曲
 def get_all_songs(playlist_id):
     all_songs = []
     response = sp.playlist_tracks(playlist_id)
-    if response:
+    while response:
         all_songs.extend(response.get('items', []))
-        while response and response.get('next'):
-            response = sp.next(response)
-            if response:
-                all_songs.extend(response.get('items', []))
-
+        response = sp.next(response)
     return all_songs
 
-playlist_a_songs = get_all_songs(config['playlist_a'])
+songs = get_all_songs(config['playlist_a'])
 
-# 筛选出符合规则的歌曲
-def filter_songs(songs, filter_condition):
-    filtered_songs = []
-    unfiltered_songs = []
-    for song in songs:
-        if song and song.get('track') and song['track'].get('name'):
-            if filter_condition == "contains_chinese":
-                if re.search('[\u4e00-\u9fff]', song['track']['name']):
-                    filtered_songs.append(song['track'])
-                else:
-                    unfiltered_songs.append(song['track'])
-            elif filter_condition == "not_contains_chinese":
-                if not re.search('[\u4e00-\u9fff]', song['track']['name']):
-                    filtered_songs.append(song['track'])
-                else:
-                    unfiltered_songs.append(song['track'])
-    return filtered_songs, unfiltered_songs
+for i, song_item in enumerate(songs):
+    track = song_item['track']
 
-filtered_songs, unfiltered_songs = filter_songs(playlist_a_songs, config['filter'])
+    # 检查歌曲URI的有效性
+    if not track['uri'].startswith('spotify:track:'):
+        print(f"Invalid URI for song {track['name']}. Skipping...")
+        continue
 
-# 获取歌单 B 和歌单 C 的所有歌曲
-playlist_b_songs = get_all_songs(config['playlist_b'])
-playlist_c_songs = get_all_songs(config['playlist_c'])
-
-# 将歌曲添加到歌单 B 和歌单 C，跳过已存在的歌曲
-for i, song in enumerate(filtered_songs):
-    if not any(b_song['track']['id'] == song['id'] for b_song in playlist_b_songs):
+    # 进行语言分类
+    language = classify_language(song_item)
+    language_playlist_id = config['languages'].get(language)
+    if language_playlist_id:
         try:
-            sp.playlist_add_items(config['playlist_b'], [song['uri']])
-            print(f"Added song {i+1}/{len(filtered_songs)} to Playlist B: {song['name']}")
+            sp.playlist_add_items(language_playlist_id, [track['uri']])
+            print(f"Added song {i+1}/{len(songs)} to {language} Playlist: {track['name']}")
         except spotipy.SpotifyException as e:
-            print(f"Rate limit exceeded, waiting for {e.headers['Retry-After']} seconds")
-            time.sleep(int(e.headers['Retry-After']) + 2)
+            # 更好地处理频率限制异常
+            if 'Rate limit exceeded' in str(e):
+                print(f"Rate limit exceeded, waiting for {e.headers.get('Retry-After', 2)} seconds")
+                time.sleep(int(e.headers.get('Retry-After', 2)) + 2)
+            else:
+                print(f"Error adding song {track['name']} to {language} Playlist: {e}")
 
-for i, song in enumerate(unfiltered_songs):
-    if not any(c_song['track']['id'] == song['id'] for c_song in playlist_c_songs):
+    # ... 同样的处理情绪分类
+
+    # 进行情绪分类
+    track_features = sp.audio_features([track['id']])[0]
+    emotion = classify_emotion(track_features)
+    emotion_playlist_id = config['emotions'].get(emotion)
+    if emotion_playlist_id:
         try:
-            sp.playlist_add_items(config['playlist_c'], [song['uri']])
-            print(f"Added song {i+1}/{len(unfiltered_songs)} to Playlist C: {song['name']}")
+            sp.playlist_add_items(emotion_playlist_id, [track['uri']])
+            print(f"Added song {i+1}/{len(songs)} to {emotion} Playlist: {track['name']}")
         except spotipy.SpotifyException as e:
             print(f"Rate limit exceeded, waiting for {e.headers['Retry-After']} seconds")
             time.sleep(int(e.headers['Retry-After']) + 2)

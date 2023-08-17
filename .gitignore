@@ -2,3 +2,4 @@ config/
 output/
 log/
 .vscode/settings.json
+.cache
